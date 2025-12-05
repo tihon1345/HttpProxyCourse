@@ -7,6 +7,15 @@ AdminWidget::AdminWidget(Course* course, QWidget* parent)
     : QWidget(parent)
     , m_course(course)
 {
+    // Критическая проверка: курс не может быть nullptr
+    if (!course) {
+        QMessageBox::critical(this, "Критическая ошибка", 
+                            "Не удалось инициализировать панель администратора: отсутствуют данные курса");
+        // Блокируем интерфейс при отсутствии данных
+        setEnabled(false);
+        return;
+    }
+    
     setupUi();
     loadTopics();
 }

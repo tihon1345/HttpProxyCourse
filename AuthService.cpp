@@ -2,9 +2,10 @@
 #include <QCryptographicHash>
 #include <QByteArray>
 
-// Хэш SHA-256 для пароля "admin123"
-// Примечание: В реальном приложении хэш должен храниться в защищенном конфигурационном файле
-static const QString ADMIN_PASSWORD_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+// Хэш SHA-256 для пароля администратора
+// ВНИМАНИЕ: В реальном проекте хэш должен храниться в защищенном конфигурационном файле!
+// Текущий хэш соответствует паролю "admin123"
+static const char* ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
 
 bool AuthService::checkAdminPassword(const QString& password) {
     if (password.isEmpty()) {
@@ -20,6 +21,6 @@ bool AuthService::checkAdminPassword(const QString& password) {
     // Преобразуем в Hex-строку (lowercase по умолчанию в Qt)
     QString inputHash = QString::fromLatin1(hashBytes.toHex());
 
-    // Сравниваем с эталоном (регистронезависимо для надежности hex представления)
-    return (QString::compare(inputHash, ADMIN_PASSWORD_HASH, Qt::CaseInsensitive) == 0);
+    // Сравниваем с эталоном (точное сравнение, так как SHA-256 всегда lowercase)
+    return (inputHash == QString::fromLatin1(ADMIN_HASH));
 }

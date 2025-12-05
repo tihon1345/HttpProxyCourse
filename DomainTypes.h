@@ -37,8 +37,15 @@ struct Question {
     friend QDataStream& operator>>(QDataStream& in, Question& q) {
         in >> q.text >> q.variants >> q.correctIndex;
         
-        // Валидация correctIndex после десериализации
-        if (q.correctIndex < 0 || q.correctIndex >= q.variants.size()) {
+        // Критическая валидация после десериализации
+        // Проверяем, что variants не пуст и correctIndex в допустимых границах
+        if (q.variants.isEmpty()) {
+            qWarning() << "Question deserialization: empty variants list, adding default options";
+            q.variants << "Да" << "Нет";
+            q.correctIndex = 0;
+        } else if (q.correctIndex < 0 || q.correctIndex >= q.variants.size()) {
+            qWarning() << "Question deserialization: invalid correctIndex" << q.correctIndex 
+                      << "for" << q.variants.size() << "variants, reset to 0";
             q.correctIndex = 0; // Устанавливаем безопасное значение по умолчанию
         }
         
