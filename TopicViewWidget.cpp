@@ -5,7 +5,6 @@ TopicViewWidget::TopicViewWidget(QWidget *parent) : QWidget(parent) {
 
     textBrowser = new QTextBrowser(this);
     textBrowser->setReadOnly(true);
-    // Отключаем открытие ссылок во внешнем браузере для безопасности/изоляции
     textBrowser->setOpenExternalLinks(false);
 
     btnStartTest = new QPushButton("Перейти к тесту", this);
@@ -20,6 +19,5 @@ TopicViewWidget::TopicViewWidget(QWidget *parent) : QWidget(parent) {
 }
 
 void TopicViewWidget::showTopic(const Topic& topic) {
-    // В будущем можно добавить CSS для красоты
     textBrowser->setHtml(topic.htmlContent);
 }
