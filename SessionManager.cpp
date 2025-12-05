@@ -30,7 +30,7 @@ void SessionManager::startTopic(int topicIndex) {
     if (!m_isLoaded) {
         throw std::runtime_error("Course not loaded");
     }
-    if (topicIndex < 0 || topicIndex >= currentCourse.topics.size()) {
+    if (topicIndex < 0 || topicIndex >= static_cast<int>(currentCourse.topics.size())) {
         throw std::runtime_error("Invalid topic index");
     }
 
@@ -48,7 +48,7 @@ Course& SessionManager::getMutableCourse() {
 }
 
 Topic* SessionManager::getCurrentTopic() {
-    if (!m_isLoaded || currentTopicIndex < 0 || currentTopicIndex >= currentCourse.topics.size()) {
+    if (!m_isLoaded || currentTopicIndex < 0 || currentTopicIndex >= static_cast<int>(currentCourse.topics.size())) {
         return nullptr;
     }
     return &currentCourse.topics[currentTopicIndex];
@@ -58,7 +58,7 @@ Question* SessionManager::getCurrentQuestion() {
     Topic* topic = getCurrentTopic();
     if (!topic) return nullptr;
 
-    if (currentQuestionIndex < 0 || currentQuestionIndex >= topic->questions.size()) {
+    if (currentQuestionIndex < 0 || currentQuestionIndex >= static_cast<int>(topic->questions.size())) {
         return nullptr;
     }
     return &topic->questions[currentQuestionIndex];
@@ -72,11 +72,21 @@ SessionManager::SubmitResult SessionManager::submitAnswer(int answerIndex) {
 
     if (!topic || !question) return SubmitResult::Wrong;
 
+    // Проверяем границы answerIndex
+    if (answerIndex < 0 || answerIndex >= static_cast<int>(question->variants.size())) {
+        return SubmitResult::Wrong;
+    }
+
+    // Проверяем корректность correctIndex (дополнительная защита)
+    if (question->correctIndex < 0 || question->correctIndex >= static_cast<int>(question->variants.size())) {
+        return SubmitResult::Wrong;
+    }
+
     if (answerIndex == question->correctIndex) {
         currentQuestionIndex++;
 
-        if (currentQuestionIndex >= topic->questions.size()) {
-            if (currentTopicIndex >= currentCourse.topics.size() - 1) {
+        if (currentQuestionIndex >= static_cast<int>(topic->questions.size())) {
+            if (currentTopicIndex >= static_cast<int>(currentCourse.topics.size()) - 1) {
                 return SubmitResult::CourseFinished;
             }
             return SubmitResult::TopicFinished;
