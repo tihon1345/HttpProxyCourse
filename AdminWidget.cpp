@@ -1,0 +1,112 @@
+#include "AdminWidget.h"
+
+AdminWidget::AdminWidget(Course* course, QWidget* parent)
+    : QWidget(parent)
+    , m_course(course)
+{
+    setupUi();
+    loadTopics();
+}
+
+void AdminWidget::setupUi() {
+    m_layout = new QVBoxLayout(this);
+
+    // 1. Header
+    m_lblHeader = new QLabel("Панель Администратора: Редактор Лекций", this);
+    QFont font = m_lblHeader->font();
+    font.setBold(true);
+    font.setPointSize(12);
+    m_lblHeader->setFont(font);
+    m_lblHeader->setAlignment(Qt::AlignCenter);
+    m_layout->addWidget(m_lblHeader);
+
+    // 2. Topic Selector
+    m_layout->addWidget(new QLabel("Выберите тему для редактирования:", this));
+    m_cbTopics = new QComboBox(this);
+    m_layout->addWidget(m_cbTopics);
+
+    // 3. HTML Editor
+    m_layout->addWidget(new QLabel("HTML Контент (QTextBrowser совместимый):", this));
+    m_txtHtmlEditor = new QTextEdit(this);
+    m_txtHtmlEditor->setAcceptRichText(false); // Редактируем код, а не визуальное представление
+    m_layout->addWidget(m_txtHtmlEditor);
+
+    // 4. Buttons
+    m_btnSave = new QPushButton("Сохранить изменения в файл", this);
+    m_layout->addWidget(m_btnSave);
+
+    m_btnLogout = new QPushButton("Выйти", this);
+    m_layout->addWidget(m_btnLogout);
+
+    // Connections
+    connect(m_cbTopics, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &AdminWidget::onTopicChanged);
+
+    connect(m_btnSave, &QPushButton::clicked, this, &AdminWidget::onSaveClicked);
+    connect(m_btnLogout, &QPushButton::clicked, this, &AdminWidget::onLogoutClicked);
+}
+
+void AdminWidget::loadTopics() {
+    if (!m_course) return;
+
+    m_cbTopics->blockSignals(true); // Блокируем сигналы при начальной загрузке
+    m_cbTopics->clear();
+
+    for (const Topic& topic : m_course->topics) {
+        m_cbTopics->addItem(topic.title);
+    }
+
+    m_cbTopics->blockSignals(false);
+
+    // Загружаем первую тему, если она есть
+    if (m_cbTopics->count() > 0) {
+        m_cbTopics->setCurrentIndex(0);
+        onTopicChanged(0);
+    }
+}
+
+void AdminWidget::onTopicChanged(int index) {
+    if (!m_course || index < 0 || index >= m_course->topics.size()) {
+        m_txtHtmlEditor->clear();
+        return;
+    }
+
+    // Загружаем сырой HTML для редактирования
+    m_txtHtmlEditor->setPlainText(m_course->topics[index].htmlContent);
+}
+
+void AdminWidget::onSaveClicked() {
+    if (!m_course) return;
+
+    int index = m_cbTopics->currentIndex();
+    if (index < 0 || index >= m_course->topics.size()) {
+        QMessageBox::warning(this, "Ошибка", "Нет выбранной темы для сохранения.");
+        return;
+    }
+
+    try {
+        // 1. Обновляем данные в памяти
+        QString newContent = m_txtHtmlEditor->toPlainText();
+        if (newContent.trimmed().isEmpty()) {
+            QMessageBox::warning(this, "Предупреждение", "Текст лекции пуст!");
+            return;
+        }
+        m_course->topics[index].htmlContent = newContent;
+
+        // 2. Сериализация на диск (шифрование внутри Serializer)
+        // Предполагаем, что путь фиксирован или передается. Используем дефолтный.
+        Serializer::save(*m_course, "course.dat");
+
+        QMessageBox::information(this, "Успех", "Курс успешно сохранен и зашифрован!");
+
+    } catch (const std::exception& e) {
+        QMessageBox::critical(this, "Ошибка сохранения",
+                              QString("Не удалось записать файл:\n%1").arg(e.what()));
+    }
+}
+
+void AdminWidget::onLogoutClicked() {
+    // Очищаем редактор перед выходом для безопасности (опционально)
+    m_txtHtmlEditor->clear();
+    emit backRequested();
+}
