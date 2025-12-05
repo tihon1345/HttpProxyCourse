@@ -7,17 +7,15 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDebug>
-#include <QVariant> // Для безопасной конвертации типов
+#include <QVariant>
 
 void Seeder::generate(const QString& jsonPath, const QString& binPath) {
-    // 1. Открытие файла JSON
     QFile file(jsonPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "[Seeder] Error: Could not open JSON file at:" << jsonPath;
         return;
     }
 
-    // 2. Чтение и парсинг документа
     QByteArray data = file.readAll();
     file.close();
 
@@ -34,11 +32,9 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
         return;
     }
 
-    // 3. Формирование объекта Course
     Course course;
     QJsonObject root = doc.object();
 
-    // Безопасное чтение массива тем
     if (root.contains("topics") && root["topics"].isArray()) {
         QJsonArray topicsArray = root["topics"].toArray();
 
@@ -48,11 +44,9 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
             QJsonObject topicObj = topicVal.toObject();
             Topic topic;
 
-            // Заполнение полей темы с дефолтными значениями
             topic.title = topicObj.value("title").toString("Untitled Topic");
             topic.htmlContent = topicObj.value("htmlContent").toString("<p>No content</p>");
 
-            // Обработка вопросов внутри темы
             if (topicObj.contains("questions") && topicObj["questions"].isArray()) {
                 QJsonArray questionsArray = topicObj["questions"].toArray();
 
@@ -62,11 +56,9 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
                     QJsonObject qObj = qVal.toObject();
                     Question question;
 
-                    // Заполнение полей вопроса
                     question.text = qObj.value("text").toString("Empty Question");
                     question.correctIndex = qObj.value("correctIndex").toInt(0);
 
-                    // Обработка вариантов ответов
                     if (qObj.contains("variants") && qObj["variants"].isArray()) {
                         QJsonArray variantsArray = qObj["variants"].toArray();
                         for (const QJsonValue& vVal : variantsArray) {
@@ -74,8 +66,6 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
                         }
                     }
 
-                    // Валидация: если вариантов нет, вопрос может вызвать сбой в UI,
-                    // добавим заглушку, если список пуст (опциональная защита)
                     if (question.variants.isEmpty()) {
                         question.variants << "Yes" << "No";
                     }
@@ -90,7 +80,6 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
         qDebug() << "[Seeder] Warning: No 'topics' array found in JSON.";
     }
 
-    // 4. Сохранение через Serializer
     try {
         Serializer::save(course, binPath);
         qDebug() << "[Seeder] Success: Course generated and saved to" << binPath;

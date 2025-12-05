@@ -13,13 +13,12 @@ TestWidget::TestWidget(QWidget *parent) : QWidget(parent) {
 
     variantsContainer = new QWidget(this);
     variantsLayout = new QVBoxLayout(variantsContainer);
-
     btnAnswer = new QPushButton("Ответить", this);
 
     mainLayout->addWidget(questionLabel);
     mainLayout->addWidget(variantsContainer);
     mainLayout->addWidget(btnAnswer);
-    mainLayout->addStretch(); // Чтобы элементы прижимались к верху
+    mainLayout->addStretch();
 
     connect(btnAnswer, &QPushButton::clicked, this, [this]() {
         int idx = getSelectedVariantIndex();
@@ -32,7 +31,6 @@ TestWidget::TestWidget(QWidget *parent) : QWidget(parent) {
 }
 
 void TestWidget::showQuestion(const Question& question) {
-    // 1. Очистка старых виджетов
     QLayoutItem* item;
     while ((item = variantsLayout->takeAt(0)) != nullptr) {
         if (item->widget()) {
@@ -42,10 +40,8 @@ void TestWidget::showQuestion(const Question& question) {
     }
     radioButtons.clear();
 
-    // 2. Обновление текста
     questionLabel->setText(question.text);
 
-    // 3. Создание радиокнопок
     for (const QString& variant : question.variants) {
         auto rb = new QRadioButton(variant, variantsContainer);
         variantsLayout->addWidget(rb);
