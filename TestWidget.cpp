@@ -31,11 +31,13 @@ TestWidget::TestWidget(QWidget *parent) : QWidget(parent) {
 }
 
 void TestWidget::showQuestion(const Question& question) {
-    // Безопасная очистка layout с использованием deleteLater()
-    QLayoutItem* item;
-    while ((item = variantsLayout->takeAt(0)) != nullptr) {
-        if (item->widget()) {
-            item->widget()->deleteLater();
+    // Безопасная очистка layout с проверкой родительского виджета
+    while (QLayoutItem* item = variantsLayout->takeAt(0)) {
+        if (QWidget* widget = item->widget()) {
+            // Дополнительная проверка принадлежности виджета контейнеру
+            if (widget->parent() == variantsContainer) {
+                widget->deleteLater();
+            }
         }
         delete item;
     }

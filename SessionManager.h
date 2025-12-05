@@ -13,6 +13,8 @@
  */
 class SessionManager {
 public:
+    /// @brief Максимальное количество ошибок в теме перед принудительным повтором
+    static const int MAX_ERRORS = 3;
     /**
      * @brief Результат отправки ответа на вопрос.
      */

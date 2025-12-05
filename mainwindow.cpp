@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "mainwindow.h"
 #include <QApplication>
 
 // Константа для имени файла курса
@@ -49,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
+    // Деструктор явно определен для корректной очистки ресурсов
+    // Qt автоматически удаляет дочерние виджеты
 }
 
 void MainWindow::setupMenu() {
@@ -73,8 +75,12 @@ void MainWindow::loadCourseData() {
         m_sessionManager.loadCourse(COURSE_DATA_FILE);
     } catch (const std::exception& e) {
         qWarning() << "Could not load course data:" << e.what();
+        QMessageBox::warning(this, "Ошибка загрузки", 
+                           QString("Не удалось загрузить данные курса: %1").arg(e.what()));
     } catch (...) {
         qWarning() << "Unknown error occurred while loading course data";
+        QMessageBox::critical(this, "Критическая ошибка", 
+                            "Произошла неизвестная ошибка при загрузке курса");
     }
 }
 

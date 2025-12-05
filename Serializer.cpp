@@ -46,8 +46,14 @@ Course Serializer::load(const QString& filePath) {
     Course course;
     stream >> course;
 
+    // Критическая проверка целостности данных после десериализации
     if (stream.status() != QDataStream::Ok) {
         throw std::runtime_error("Serializer::load - Data corruption or version mismatch in: " + filePath.toStdString());
+    }
+
+    // Дополнительная проверка: убеждаемся, что все данные прочитаны корректно
+    if (stream.atEnd() == false && stream.status() == QDataStream::Ok) {
+        qWarning() << "Serializer::load - Warning: Extra data found in file, possible version mismatch";
     }
 
     return course;

@@ -56,8 +56,9 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
                     QJsonObject qObj = qVal.toObject();
                     Question question;
 
-                    question.text = qObj.value("text").toString("Empty Question");
-                    question.correctIndex = qObj.value("correctIndex").toInt(0);
+                    // Безопасное чтение полей с проверкой наличия
+                    question.text = qObj.contains("text") ? qObj["text"].toString("Empty Question") : "Empty Question";
+                    question.correctIndex = qObj.contains("correctIndex") ? qObj["correctIndex"].toInt(0) : 0;
 
                     if (qObj.contains("variants") && qObj["variants"].isArray()) {
                         QJsonArray variantsArray = qObj["variants"].toArray();
@@ -68,6 +69,13 @@ void Seeder::generate(const QString& jsonPath, const QString& binPath) {
 
                     if (question.variants.isEmpty()) {
                         question.variants << "Yes" << "No";
+                    }
+
+                    // Критическая валидация correctIndex после заполнения variants
+                    if (question.correctIndex < 0 || question.correctIndex >= question.variants.size()) {
+                        qWarning() << "[Seeder] Invalid correctIndex" << question.correctIndex 
+                                  << "for question with" << question.variants.size() << "variants. Reset to 0.";
+                        question.correctIndex = 0;
                     }
 
                     topic.questions.append(question);
