@@ -1,6 +1,9 @@
 #include "MainWindow.h"
 #include <QApplication>
 
+// Константа для имени файла курса
+static const QString COURSE_DATA_FILE = "course.dat";
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_adminWidget(nullptr)
@@ -67,9 +70,11 @@ void MainWindow::showAboutDialog() {
 
 void MainWindow::loadCourseData() {
     try {
-        m_sessionManager.loadCourse("course.dat");
+        m_sessionManager.loadCourse(COURSE_DATA_FILE);
     } catch (const std::exception& e) {
         qWarning() << "Could not load course data:" << e.what();
+    } catch (...) {
+        qWarning() << "Unknown error occurred while loading course data";
     }
 }
 
@@ -85,7 +90,8 @@ void MainWindow::handleStudentStart() {
 void MainWindow::handleAdminLogin(const QString& password) {
     if (AuthService::checkAdminPassword(password)) {
         if (!m_adminWidget) {
-            m_adminWidget = new AdminWidget(const_cast<Course*>(&m_sessionManager.getCourse()), this);
+            // Передаем изменяемую ссылку на курс через SessionManager
+            m_adminWidget = new AdminWidget(&m_sessionManager.getMutableCourse(), this);
             connect(m_adminWidget, &AdminWidget::backRequested,
                     this, &MainWindow::onAdminBackRequested);
             m_stackedWidget->addWidget(m_adminWidget);

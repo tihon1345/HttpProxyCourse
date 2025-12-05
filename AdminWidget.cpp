@@ -1,5 +1,8 @@
 #include "AdminWidget.h"
 
+// Константа для имени файла курса
+static const QString COURSE_DATA_FILE = "course.dat";
+
 AdminWidget::AdminWidget(Course* course, QWidget* parent)
     : QWidget(parent)
     , m_course(course)
@@ -84,7 +87,7 @@ void AdminWidget::onSaveClicked() {
         }
         m_course->topics[index].htmlContent = newContent;
 
-        Serializer::save(*m_course, "course.dat");
+        Serializer::save(*m_course, COURSE_DATA_FILE);
         QMessageBox::information(this, "Успех", "Курс успешно сохранен и зашифрован!");
 
     } catch (const std::exception& e) {

@@ -36,6 +36,12 @@ struct Question {
      */
     friend QDataStream& operator>>(QDataStream& in, Question& q) {
         in >> q.text >> q.variants >> q.correctIndex;
+        
+        // Валидация correctIndex после десериализации
+        if (q.correctIndex < 0 || q.correctIndex >= q.variants.size()) {
+            q.correctIndex = 0; // Устанавливаем безопасное значение по умолчанию
+        }
+        
         return in;
     }
 };
